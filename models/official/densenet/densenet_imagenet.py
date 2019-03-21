@@ -259,7 +259,7 @@ def model_fn(features, labels, mode, params):
         features, is_training=(mode == tf.estimator.ModeKeys.TRAIN))
   elif FLAGS.network_depth == 121:
     logits = densenet_model.densenet_imagenet_121(
-        features, is_training=(mode == tf.estimator.ModeKeys.TRAIN))
+        features, is_training=(mode == tf.estimator.ModeKeys.TRAIN), num_classes=FLAGS._LABEL_CLASSES)
   else:
     tf.logging.info("Number of layers not supported, revert to 121")
     logits = densenet_model.densenet_imagenet_121(
