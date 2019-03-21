@@ -128,7 +128,7 @@ def _get_image_data(filename, coder):
     width: integer, image width in pixels.
   """
   # Read the image file.
-  with tf.gfile.FastGFile(filename, 'r') as ifp:
+  with tf.gfile.FastGFile(filename, 'rb') as ifp:
     image_data = ifp.read()
 
   # Decode the RGB JPEG.
@@ -152,7 +152,7 @@ def convert_to_example(csvline, categories):
   Yields:
     serialized TF example if the label is in categories
   """
-  filename, label = csvline.encode(encoding='UTF-8',errors='strict').split(',')
+  filename, label = csvline.split(',')
   if label in categories:
     # ignore labels not in categories list
     coder = ImageCoder()
