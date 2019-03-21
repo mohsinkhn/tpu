@@ -90,7 +90,7 @@ flags.DEFINE_integer("shuffle_buffer_size", 1000,
 # For mode=train and mode=train_and_eval
 flags.DEFINE_integer(
     "steps_per_checkpoint",
-    default=,
+    default=5,
     help=("Controls how often checkpoints are generated. More steps per "
           "checkpoint = higher utilization of TPU and generally higher "
           "steps/sec"))
