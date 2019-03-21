@@ -62,10 +62,10 @@ flags.DEFINE_integer(
     "train_batch_size", default=1024, help="Batch size for training.")
 
 flags.DEFINE_integer(
-    "eval_batch_size", default=1024, help="Batch size for evaluation.")
+    "eval_batch_size", default=512, help="Batch size for evaluation.")
 
 flags.DEFINE_integer(
-    "num_shards", default=8, help="Number of shards (TPU cores).")
+    "num_shards", default=2, help="Number of shards (TPU cores).")
 
 flags.DEFINE_integer(
     "iterations_per_loop",
@@ -90,7 +90,7 @@ flags.DEFINE_integer("shuffle_buffer_size", 1000,
 # For mode=train and mode=train_and_eval
 flags.DEFINE_integer(
     "steps_per_checkpoint",
-    default=1000,
+    default=,
     help=("Controls how often checkpoints are generated. More steps per "
           "checkpoint = higher utilization of TPU and generally higher "
           "steps/sec"))
@@ -114,7 +114,7 @@ flags.DEFINE_integer(
 
 flags.DEFINE_integer(
     "train_steps",
-    default=130000,  # Roughly 100 epochs
+    default=10,  # Roughly 100 epochs
     help="The number of steps to use for training.")
 
 # For mode=train_and_eval, evaluation occurs at each steps_per_checkpoint
@@ -127,10 +127,10 @@ flags.DEFINE_string(
           "(default, interleaved train & eval)."))
 
 # Dataset constants
-_LABEL_CLASSES = 1001
+_LABEL_CLASSES = 20
 _NUM_CHANNELS = 3
-_NUM_TRAIN_IMAGES = 1281167
-_NUM_EVAL_IMAGES = 50000
+_NUM_TRAIN_IMAGES = 800
+_NUM_EVAL_IMAGES = 200
 _MOMENTUM = 0.9
 _WEIGHT_DECAY = 1e-4
 
