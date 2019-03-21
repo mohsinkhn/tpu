@@ -162,8 +162,6 @@ def convert_to_example(csvline, categories):
     yield example.SerializeToString()
 
 
-class UTFCoder()
-
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
