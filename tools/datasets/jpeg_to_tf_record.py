@@ -152,7 +152,7 @@ def convert_to_example(csvline, categories):
   Yields:
     serialized TF example if the label is in categories
   """
-  filename, label = csvline.encode('ascii', 'ignore').split(',')
+  filename, label = csvline.split(',')
   if label in categories:
     # ignore labels not in categories list
     coder = ImageCoder()
@@ -246,7 +246,7 @@ if __name__ == '__main__':
       _ = (
           p
           | '{}_read_csv'.format(step) >> beam.io.ReadFromText(
-              arguments['{}_csv'.format(step)], coder=UTFCoder)
+              arguments['{}_csv'.format(step)])
           | '{}_convert'.format(step) >>
           beam.FlatMap(lambda line: convert_to_example(line, LABELS))
           | '{}_write_tfr'.format(step) >> beam.io.tfrecordio.WriteToTFRecord(
