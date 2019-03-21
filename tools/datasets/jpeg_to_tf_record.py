@@ -161,7 +161,7 @@ def convert_to_example(csvline, categories):
     coder = ImageCoder()
     image_buffer, height, width = _get_image_data(filename, coder)
     del coder
-    example = _convert_to_example(filename, image_buffer,
+    example = _convert_to_example(bytes(filename, encoding='utf-8'), image_buffer,
                                   categories.index(label), bytes(label, encoding='utf-8'), height, width)
     yield example.SerializeToString()
 
