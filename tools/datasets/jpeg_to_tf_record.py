@@ -53,6 +53,9 @@ class UTFCoder(Coder):
   def is_deterministic(self):
     return True
 
+def _int64_feature(value):
+  """Wrapper for inserting bytes features into Example proto."""
+  return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
 
 def _bytes_feature(value):
   """Wrapper for inserting bytes features into Example proto."""
