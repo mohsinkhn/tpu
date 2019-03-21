@@ -253,7 +253,7 @@ def model_fn(features, labels, mode, params):
 
   if FLAGS.network_depth == 169:
     logits = densenet_model.densenet_imagenet_169(
-        features, is_training=(mode == tf.estimator.ModeKeys.TRAIN))
+        features, is_training=(mode == tf.estimator.ModeKeys.TRAIN), num_classes=FLAGS._LABEL_CLASSES)
   elif FLAGS.network_depth == 201:
     logits = densenet_model.densenet_imagenet_201(
         features, is_training=(mode == tf.estimator.ModeKeys.TRAIN))
