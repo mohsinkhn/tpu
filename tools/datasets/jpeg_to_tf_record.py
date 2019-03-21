@@ -152,7 +152,7 @@ def convert_to_example(csvline, categories):
   Yields:
     serialized TF example if the label is in categories
   """
-  filename, label = csvline.split(',')
+  filename, label = csvline.encode(encoding='UTF-8',errors='strict').split(',')
   if label in categories:
     # ignore labels not in categories list
     coder = ImageCoder()
