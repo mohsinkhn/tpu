@@ -46,8 +46,8 @@ class UTFCoder(Coder):
   def encode(self, value):
     return value.encode('utf-8')
 
-  def decode(self, value):
-    return value.decode('utf-8')
+  def decode(self):
+    return valuei#.decode('utf-8')
 
   def is_deterministic(self):
     return True
