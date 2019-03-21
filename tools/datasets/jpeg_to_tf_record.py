@@ -162,7 +162,7 @@ def convert_to_example(csvline, categories):
     image_buffer, height, width = _get_image_data(filename, coder)
     del coder
     example = _convert_to_example(filename, image_buffer,
-                                  categories.index(label), bytes(label), height, width)
+                                  categories.index(label), bytes(label, encoding='utf-8'), height, width)
     yield example.SerializeToString()
 
 
