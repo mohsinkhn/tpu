@@ -37,7 +37,7 @@ import subprocess
 import sys
 import apache_beam as beam
 import tensorflow as tf
-from apache.beam.coders.coders import Coder
+from apache_beam.coders.coders import Coder
 
 
 class UTFCoder(Coder):
