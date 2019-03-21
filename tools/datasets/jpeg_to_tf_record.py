@@ -39,17 +39,18 @@ import apache_beam as beam
 import tensorflow as tf
 from apache.beam.coders.coders import Coder
 
+
 class UTFCoder(Coder):
-    """A coder used for reading and writing strings as ISO-8859-1."""
+  """A coder used for reading and writing strings as ISO-8859-1."""
 
-    def encode(self, value):
-        return value.encode('utf-8')
+  def encode(self, value):
+    return value.encode('utf-8')
 
-    def decode(self, value):
-        return value.decode('utf-8')
+  def decode(self, value):
+    return value.decode('utf-8')
 
-    def is_deterministic(self):
-        return True
+  def is_deterministic(self):
+    return True
 
 
 def _bytes_feature(value):
