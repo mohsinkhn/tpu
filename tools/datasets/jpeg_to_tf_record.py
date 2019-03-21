@@ -37,13 +37,19 @@ import subprocess
 import sys
 import apache_beam as beam
 import tensorflow as tf
+from apache.beam.coders.coders import Coder
 
+class UTFCoder(Coder):
+    """A coder used for reading and writing strings as ISO-8859-1."""
 
-def _int64_feature(value):
-  """Wrapper for inserting int64 features into Example proto."""
-  if not isinstance(value, list):
-    value = [value]
-  return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
+    def encode(self, value):
+        return value.encode('utf-8')
+
+    def decode(self, value):
+        return value.decode('utf-8')
+
+    def is_deterministic(self):
+        return True
 
 
 def _bytes_feature(value):
@@ -155,6 +161,9 @@ def convert_to_example(csvline, categories):
     yield example.SerializeToString()
 
 
+class UTFCoder()
+
+
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument(
@@ -237,7 +246,7 @@ if __name__ == '__main__':
       _ = (
           p
           | '{}_read_csv'.format(step) >> beam.io.ReadFromText(
-              arguments['{}_csv'.format(step)])
+              arguments['{}_csv'.format(step)], coder=UTFCoder)
           | '{}_convert'.format(step) >>
           beam.FlatMap(lambda line: convert_to_example(line, LABELS))
           | '{}_write_tfr'.format(step) >> beam.io.tfrecordio.WriteToTFRecord(
