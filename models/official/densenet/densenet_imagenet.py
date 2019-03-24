@@ -62,10 +62,10 @@ flags.DEFINE_integer(
     "train_batch_size", default=1024, help="Batch size for training.")
 
 flags.DEFINE_integer(
-    "eval_batch_size", default=512, help="Batch size for evaluation.")
+    "eval_batch_size", default=1024, help="Batch size for evaluation.")
 
 flags.DEFINE_integer(
-    "num_shards", default=2, help="Number of shards (TPU cores).")
+    "num_shards", default=8, help="Number of shards (TPU cores).")
 
 flags.DEFINE_integer(
     "iterations_per_loop",
@@ -90,7 +90,7 @@ flags.DEFINE_integer("shuffle_buffer_size", 1000,
 # For mode=train and mode=train_and_eval
 flags.DEFINE_integer(
     "steps_per_checkpoint",
-    default=5,
+    default=50,
     help=("Controls how often checkpoints are generated. More steps per "
           "checkpoint = higher utilization of TPU and generally higher "
           "steps/sec"))
@@ -98,7 +98,7 @@ flags.DEFINE_integer(
 # For mode=eval
 flags.DEFINE_integer(
     "min_eval_interval",
-    default=180,
+    default=120,
     help="Minimum seconds between evaluations.")
 
 # For mode=eval
@@ -109,12 +109,12 @@ flags.DEFINE_integer(
 
 flags.DEFINE_integer(
     "network_depth",
-    default=121,
+    default=169,
     help="Number of levels in the Densenet network")
 
 flags.DEFINE_integer(
     "train_steps",
-    default=10,  # Roughly 100 epochs
+    default=100000,  # Roughly 100 epochs
     help="The number of steps to use for training.")
 
 # For mode=train_and_eval, evaluation occurs at each steps_per_checkpoint
@@ -127,10 +127,10 @@ flags.DEFINE_string(
           "(default, interleaved train & eval)."))
 
 # Dataset constants
-_LABEL_CLASSES = 20
+_LABEL_CLASSES = 891
 _NUM_CHANNELS = 3
-_NUM_TRAIN_IMAGES = 800
-_NUM_EVAL_IMAGES = 200
+_NUM_TRAIN_IMAGES = 484990
+_NUM_EVAL_IMAGES = 121247
 _MOMENTUM = 0.9
 _WEIGHT_DECAY = 1e-4
 
@@ -169,22 +169,17 @@ class ImageNetInput(object):
   def dataset_parser(self, value):
     """Parse an Imagenet record from value."""
     keys_to_features = {
-        "image/encoded": tf.FixedLenFeature((), tf.string, ""),
-        "image/format": tf.FixedLenFeature((), tf.string, "jpeg"),
-        "image/class/label": tf.FixedLenFeature([], tf.int64, -1),
-        "image/class/text": tf.FixedLenFeature([], tf.string, ""),
-        "image/object/bbox/xmin": tf.VarLenFeature(dtype=tf.float32),
-        "image/object/bbox/ymin": tf.VarLenFeature(dtype=tf.float32),
-        "image/object/bbox/xmax": tf.VarLenFeature(dtype=tf.float32),
-        "image/object/bbox/ymax": tf.VarLenFeature(dtype=tf.float32),
-        "image/object/class/label": tf.VarLenFeature(dtype=tf.int64),
+        "image": tf.FixedLenFeature((), tf.string, ""),
+        "label": tf.FixedLenFeature([], tf.int64, -1),
     }
 
     parsed = tf.parse_single_example(value, keys_to_features)
-
-    image = tf.image.decode_image(
-        tf.reshape(parsed["image/encoded"], shape=[]), _NUM_CHANNELS)
-    image = tf.image.convert_image_dtype(image, dtype=tf.float32)
+    image = tf.decode_raw(parsed["image"], tf.uint8)
+    image = tf.cast(image, tf.float32)
+    image = tf.reshape(image, tf.stack([256, 256, 3]))
+    #image = tf.image.decode_image(
+    #    tf.reshape(parsed["image"], shape=[]), _NUM_CHANNELS)
+    #image = tf.image.convert_image_dtype(image, dtype=tf.float32)
 
     # TODO(shivaniagrawal): height and width of image from model
     image = vgg_preprocessing.preprocess_image(
@@ -194,7 +189,7 @@ class ImageNetInput(object):
         is_training=self.is_training)
 
     label = tf.cast(
-        tf.reshape(parsed["image/class/label"], shape=[]), dtype=tf.int32)
+        tf.reshape(parsed["label"], shape=[]), dtype=tf.int32)
 
     return image, tf.one_hot(label, _LABEL_CLASSES)
 
@@ -210,8 +205,8 @@ class ImageNetInput(object):
     batch_size = params["batch_size"]
 
     # Shuffle the filenames to ensure better randomization
-    file_pattern = os.path.join(self.data_dir, "train-*"
-                                if self.is_training else "validation-*")
+    file_pattern = os.path.join(self.data_dir, "train*"
+                                if self.is_training else "validation*")
     dataset = tf.data.Dataset.list_files(file_pattern, shuffle=False)
     if self.is_training:
       dataset = dataset.shuffle(buffer_size=1024)  # 1024 files in dataset
@@ -224,21 +219,22 @@ class ImageNetInput(object):
       dataset = tf.data.TFRecordDataset(filename, buffer_size=buffer_size)
       return dataset
 
-    dataset = dataset.apply(
-        tf.contrib.data.parallel_interleave(
-            prefetch_dataset, cycle_length=FLAGS.num_files_infeed, sloppy=True))
+    #dataset = dataset.apply(
+    #    tf.contrib.data.parallel_interleave(
+    #        prefetch_dataset, cycle_length=FLAGS.num_files_infeed, sloppy=True))
+    dataset = dataset.apply(prefetch_dataset)
     dataset = dataset.shuffle(FLAGS.shuffle_buffer_size)
 
     dataset = dataset.map(self.dataset_parser, num_parallel_calls=128)
     dataset = dataset.prefetch(batch_size)
     dataset = dataset.batch(batch_size, drop_remainder=True)
-    dataset = dataset.prefetch(2)  # Prefetch overlaps in-feed with training
+    dataset = dataset.prefetch(8)  # Prefetch overlaps in-feed with training
     return dataset
 
   def _input_fn_null(self, params):
     """Input function which provides null (black) images."""
     batch_size = params["batch_size"]
-    null_image = tf.zeros([224, 224, 3], tf.float32)
+    null_image = tf.zeros([256, 256, 3], tf.float32)
     null_label = tf.one_hot(tf.constant(0, tf.int32), _LABEL_CLASSES)
     dataset = tf.data.Dataset.from_tensors((null_image, null_label))
     dataset = dataset.repeat(batch_size).batch(batch_size, drop_remainder=True)
